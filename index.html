@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<title>Sample todo app</title>
+
+	<meta name="description" content="Pure typescript todo app">
+	<meta name="author" content="LayoutIt!">
+
+	<link href="node_modules/bootstrap/dist/css/bootstrap.css" rel="stylesheet">
+</head>
+
+<body>
+	<div class="container-fluid">
+		<div class="row">
+			<div class="col-md-3">
+				<form role="form" id="mainForm">
+					<div class="form-group">
+						<label for="todoText">
+							TODO text
+						</label>
+						<input type="text" class="form-control" id="todoText" autocomplete="off">
+						<div class="invalid-feedback">
+							No value provided
+						</div>
+					</div>
+					<button type="submit" class="btn btn-primary">
+						Submit
+					</button>
+				</form>
+			</div>
+		</div>
+		<div class="row pt-3">
+			<div class="col-md-4">
+				<span id='table'></span>
+			</div>
+		</div>
+	</div>
+
+	<script src="src/index.ts"></script>
+
+	<script src="node_modules/jquery/dist/jquery.js"></script>
+	<script src="node_modules/popper.js/dist/popper.js"></script>
+	<script src="node_modules/bootstrap/dist/js/bootstrap.js"></script>
+</body>
+
+</html>
