@@ -2,48 +2,18 @@
   "todo": [
     {
       "id": 0,
-      "title": "newone",
+      "title": "cherry",
       "date": "2020-04-06T13:17:46.694Z"
     },
     {
       "id": 1,
-      "title": "dos",
+      "title": "strawberry",
       "date": "2020-04-06T14:52:05.036Z"
     },
     {
       "id": 2,
-      "title": "terere",
+      "title": "dinkleberry",
       "date": "2020-04-06T14:55:52.347Z"
-    },
-    {
-      "id": 3,
-      "title": "quadro",
-      "date": "2020-04-06T14:56:06.992Z"
-    },
-    {
-      "id": 4,
-      "title": "jora",
-      "date": "2020-04-07T18:44:05.107Z"
-    },
-    {
-      "id": 5,
-      "title": "work",
-      "date": "2020-04-07T18:44:40.841Z"
-    },
-    {
-      "id": 6,
-      "title": "wrrrrt",
-      "date": "2020-04-07T18:55:28.146Z"
-    },
-    {
-      "id": 7,
-      "title": "ssssee",
-      "date": "2020-04-07T19:13:46.718Z"
-    },
-    {
-      "id": 8,
-      "title": "fffee",
-      "date": "2020-04-07T20:23:27.992Z"
     }
   ]
 }
