@@ -1,34 +1,92 @@
+import Client from "./client"
+import FSM, { State } from "./fsm"
+
 export interface Page {
   textValue(): string
   resetText(): void
+  toggleInputEnabled(_: boolean): void
+  toggleAddBtnEnabled(_: boolean): void
   toggleError(_: boolean): void
   renderTable(_: string[]): void
 }
 
 export default class App {
   private page: Page
-  private data: string[] = []
+  private client: Client
+  private fsm: FSM
 
-  constructor(p: Page) {
+  constructor(p: Page, c: Client) {
     this.page = p
+    this.client = c
+    this.fsm = new FSM(this.config())
+  }
+
+  init() {
+    this.client.fetchAll().then(data => {
+      this.page.renderTable(data)
+    })
+      .catch(() => { console.error('could not fetch data') })
   }
 
   onChange() {
-    this.page.toggleError(false)
+    this.fsm.on("change")
   }
 
   onSubmit() {
-    let v = this.page.textValue()
+    this.fsm.on("submit")
+  }
 
-    if (!v || v.length === 0) {
-      this.page.toggleError(true)
-      return
+  config(): State {
+    let valid: State = new State(),
+      empty: State = new State(),
+      initial: State = new State()
+
+    initial.transitionTable = {
+      "change": () => { if (this.inputIsEmpty()) return empty; return valid },
+      "submit": () => { throw 'unexpected' }
     }
 
-    this.page.toggleError(false)
-    this.page.resetText()
+    valid.effect = () => {
+      this.page.toggleError(false)
+      this.page.toggleAddBtnEnabled(true)
+    }
 
-    this.data = [...this.data, v]
-    this.page.renderTable([...this.data])
+    valid.transitionTable = {
+      "change": () => { if (this.inputIsEmpty()) return empty },
+      "submit": this.submit(valid)
+    }
+
+    empty.effect = () => {
+      this.page.toggleError(true)
+      this.page.toggleAddBtnEnabled(false)
+    }
+
+    empty.transitionTable = {
+      "change": () => { if (!this.inputIsEmpty()) return valid },
+      "submit": () => { throw 'unexpected' }
+    }
+
+    return initial
+  }
+
+  inputIsEmpty(): boolean {
+    let s = this.page.textValue()
+    return !s || s.trim().length === 0
+  }
+
+  submit(success: State) {
+    return () => {
+      let v = this.page.textValue()
+      this.page.toggleInputEnabled(false)
+      this.client.add(v).then(data => {
+        this.page.resetText()
+        this.page.renderTable(data)
+        this.page.toggleInputEnabled(true)
+        this.page.toggleAddBtnEnabled(false)
+      })
+        .catch(() => console.error('could not add new todo'))
+
+      return success
+    }
   }
 }

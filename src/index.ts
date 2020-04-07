@@ -1,10 +1,10 @@
 import init from './init'
 
-function ready(callbackFunction) {
+function ready(callbackFn: EventListener) {
   if (document.readyState != 'loading')
-    callbackFunction(event)
+    callbackFn(event)
   else
-    document.addEventListener("DOMContentLoaded", callbackFunction)
+    document.addEventListener("DOMContentLoaded", callbackFn)
 }
 
 ready(init)

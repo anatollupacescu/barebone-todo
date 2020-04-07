@@ -1,14 +1,18 @@
 import App, { Page } from "./app"
+import Client from "./client"
 
 export default function init() {
   let page: Page = {
     textValue: (): string => getTextValue(),
     resetText: (): void => resetText(),
+    toggleInputEnabled: (b: boolean) => toggleInputEnabled(b),
+    toggleAddBtnEnabled: (b: boolean) => toggleAddBtnEnabled(b),
     toggleError: (b: boolean): void => toggleError(b),
     renderTable: (data: string[]): void => renderTable(data)
   }
 
-  let app = new App(page)
+  let client = new Client()
+  let app = new App(page, client)
 
   let form: HTMLFormElement = document.querySelector('#mainForm')
   form.onsubmit = (event: Event) => {
@@ -20,6 +24,8 @@ export default function init() {
   e.onkeyup = () => {
     app.onChange()
   }
+
+  app.init()
 }
 
 function renderTable(data: string[]) {
@@ -44,4 +50,14 @@ function toggleError(b: boolean) {
     return
   }
   e.classList.remove('is-invalid');
+}
+
+function toggleInputEnabled(enabled: boolean) {
+  let e: HTMLInputElement = document.querySelector('#todoText')
+  e.disabled = !enabled
+}
+
+function toggleAddBtnEnabled(enabled: boolean) {
+  let e: HTMLInputElement = document.querySelector('#addBtn')
+  e.disabled = !enabled
 }
