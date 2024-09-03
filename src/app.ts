@@ -18,7 +18,7 @@ export default class App {
     this.client = c
   }
 
-  init() {
+  load() {
     this.client.fetchAll().then(data => {
       this.page.renderTable(data)
     })
