@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", function init() {
     throw new Error("#todoText not found");
   }
 
-  let button: HTMLButtonElement | null = document.querySelector('#addBtn');
+  let button: HTMLButtonElement | null = document.querySelector("#addBtn");
   if (!button) {
     throw new Error("#addBtn not found");
   }
@@ -25,7 +25,9 @@ document.addEventListener("DOMContentLoaded", function init() {
   let page: Page = {
     textValue: (): string => text.value,
 
-    resetText: (): void => { text.value = "" },
+    resetText: (): void => {
+      text.value = "";
+    },
 
     // only the button tracks validity state — input is never disabled by validation
     setReady: (b: boolean): void => {
@@ -48,8 +50,16 @@ document.addEventListener("DOMContentLoaded", function init() {
     isValid: (): boolean => form.checkValidity(),
 
     renderTable: (data: string[]): void => {
-      let result = data.map(d => `<li class="list-item">${d}</li>`).join("");
-      table.innerHTML = `<ol>${result}</ol>`;
+      const ol = document.createElement("ol");
+
+      for (const d of data) {
+        const li = document.createElement("li");
+        li.className = "list-item";
+        li.textContent = d; // textContent escapes HTML automatically — no XSS
+        ol.appendChild(li);
+      }
+
+      table.replaceChildren(ol); // atomic swap, no flicker, clears old nodes cleanly
     },
   };
 
@@ -57,13 +67,13 @@ document.addEventListener("DOMContentLoaded", function init() {
   let app = new App(page, client);
 
   // 'input' fires on any value change: typing, paste, drag-drop, autocomplete
-  text.addEventListener('input', () => {
+  text.addEventListener("input", () => {
     app.onChange();
   });
 
   // browser fires 'invalid' per-field when checkValidity() fails or submit is blocked
   // preventDefault suppresses the browser's native callout bubble
-  text.addEventListener('invalid', (event: Event) => {
+  text.addEventListener("invalid", (event: Event) => {
     event.preventDefault();
     app.onInvalid();
   });
@@ -71,7 +81,7 @@ document.addEventListener("DOMContentLoaded", function init() {
   // submit only fires if the browser's own checkValidity() passed (because of novalidate
   // we handle it manually via form.checkValidity() in page.isValid, but type="submit"
   // on the button still triggers constraint checking before the event reaches here)
-  form.addEventListener('submit', (event: Event) => {
+  form.addEventListener("submit", (event: Event) => {
     event.preventDefault();
     app.onSubmit();
   });
