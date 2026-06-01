@@ -3,18 +3,16 @@ import Client from "./client";
 
 document.addEventListener("DOMContentLoaded", function init() {
   let form: HTMLFormElement | null = document.querySelector("#mainForm");
-
   if (!form) {
     throw new Error("#mainForm not found");
   }
 
   let text: HTMLInputElement | null = document.querySelector("#todoText");
-
   if (!text) {
     throw new Error("#todoText not found");
   }
 
-  let button: HTMLInputElement | null = document.querySelector('#addBtn')
+  let button: HTMLButtonElement | null = document.querySelector('#addBtn');
   if (!button) {
     throw new Error("#addBtn not found");
   }
@@ -25,56 +23,58 @@ document.addEventListener("DOMContentLoaded", function init() {
   }
 
   let page: Page = {
-    textValue: (): string => getTextValue(text),
-    resetText: (): void => resetText(text),
+    textValue: (): string => text.value,
+
+    resetText: (): void => { text.value = "" },
+
+    // only the button tracks validity state — input is never disabled by validation
     setReady: (b: boolean): void => {
-      setInputEnabled(text, b);
-      setAddBtnEnabled(button, b);
+      button.disabled = !b;
     },
-    setError: (b: boolean): void => toggleError(text, b),
-    renderTable: (data: string[]): void => renderTable(table, data),
+
+    // input is locked only during fetch in-flight to prevent edits mid-request
+    lockInput: (b: boolean): void => {
+      text.disabled = b;
+    },
+
+    markInvalid: (): void => {
+      text.classList.add("is-invalid");
+    },
+
+    markValid: (): void => {
+      text.classList.remove("is-invalid");
+    },
+
+    isValid: (): boolean => form.checkValidity(),
+
+    renderTable: (data: string[]): void => {
+      let result = data.map(d => `<li class="list-item">${d}</li>`).join("");
+      table.innerHTML = `<ol>${result}</ol>`;
+    },
   };
 
   let client = new Client();
   let app = new App(page, client);
 
+  // 'input' fires on any value change: typing, paste, drag-drop, autocomplete
+  text.addEventListener('input', () => {
+    app.onChange();
+  });
+
+  // browser fires 'invalid' per-field when checkValidity() fails or submit is blocked
+  // preventDefault suppresses the browser's native callout bubble
+  text.addEventListener('invalid', (event: Event) => {
+    event.preventDefault();
+    app.onInvalid();
+  });
+
+  // submit only fires if the browser's own checkValidity() passed (because of novalidate
+  // we handle it manually via form.checkValidity() in page.isValid, but type="submit"
+  // on the button still triggers constraint checking before the event reaches here)
   form.addEventListener('submit', (event: Event) => {
     event.preventDefault();
     app.onSubmit();
   });
 
-  text.addEventListener('input', () => {
-    app.onChange();
-  });
-
   app.load();
 });
-
-function renderTable(table: Element, data: string[]) {
-  let result = data.map((d) => `<li class="list-item">${d}</li>`).join("");
-  table.innerHTML = `<ol>${result}</ol>`;
-}
-
-function getTextValue(e: HTMLInputElement): string {
-  return e.value;
-}
-
-function resetText(e: HTMLInputElement): void {
-  e.value = "";
-}
-
-function toggleError(e: HTMLInputElement, b: boolean) {
-  if (b) {
-    e.classList.add("is-invalid");
-    return;
-  }
-  e.classList.remove("is-invalid");
-}
-
-function setInputEnabled(e: HTMLInputElement, enabled: boolean) {
-  e.disabled = !enabled;
-}
-
-function setAddBtnEnabled(e: HTMLInputElement, enabled: boolean) {
-  e.disabled = !enabled;
-}
