@@ -3,9 +3,8 @@ import Client from "./client"
 export interface Page {
   textValue(): string
   resetText(): void
-  toggleInputEnabled(_: boolean): void
-  toggleAddBtnEnabled(_: boolean): void
-  toggleError(_: boolean): void
+  setReady(_: boolean): void
+  setError(_: boolean): void
   renderTable(_: string[]): void
 }
 
@@ -26,20 +25,13 @@ export default class App {
   }
 
   onChange() {
-    let v = this.page.textValue()
-
-    if (!v || v.trim().length === 0) {
-      this.page.toggleError(true)
-      this.page.toggleAddBtnEnabled(false)
-      return
-    }
-
-    this.page.toggleError(false)
-    this.page.toggleAddBtnEnabled(true)
+    let valid = this.page.textValue().trim().length > 0
+    this.page.setError(!valid)
+    this.page.setReady(valid)
   }
 
   onSubmit() {
-    this.page.toggleInputEnabled(false)
+    this.page.setReady(false)
 
     let todo = this.page.textValue()
 
@@ -47,8 +39,8 @@ export default class App {
       .then((data) => {
         this.page.resetText()
         this.page.renderTable(data)
-        this.page.toggleInputEnabled(true)
-        this.page.toggleAddBtnEnabled(false)
+        this.page.setReady(true)
+        this.page.setError(false)
       })
       .catch(() => { console.error('could not add todo item') })
   }

@@ -16,39 +16,43 @@ document.addEventListener("DOMContentLoaded", function init() {
 
   let button: HTMLInputElement | null = document.querySelector('#addBtn')
   if (!button) {
-    throw new Error("#todoText not found");
+    throw new Error("#addBtn not found");
+  }
+
+  let table: Element | null = document.querySelector("#table");
+  if (!table) {
+    throw new Error("#table not found");
   }
 
   let page: Page = {
     textValue: (): string => getTextValue(text),
     resetText: (): void => resetText(text),
-    toggleInputEnabled: (b: boolean) => setInputEnabled(text, b),
-    toggleAddBtnEnabled: (b: boolean) => setAddBtnEnabled(button, b),
-    toggleError: (b: boolean): void => toggleError(text, b),
-    renderTable: (data: string[]): void => renderTable(data),
+    setReady: (b: boolean): void => {
+      setInputEnabled(text, b);
+      setAddBtnEnabled(button, b);
+    },
+    setError: (b: boolean): void => toggleError(text, b),
+    renderTable: (data: string[]): void => renderTable(table, data),
   };
 
   let client = new Client();
   let app = new App(page, client);
 
-  form.onsubmit = (event: Event) => {
+  form.addEventListener('submit', (event: Event) => {
     event.preventDefault();
     app.onSubmit();
-  };
+  });
 
-  text.onkeyup = () => {
+  text.addEventListener('input', () => {
     app.onChange();
-  };
+  });
 
   app.load();
 });
 
-function renderTable(data: string[]) {
+function renderTable(table: Element, data: string[]) {
   let result = data.map((d) => `<li class="list-item">${d}</li>`).join("");
-  const table = document.querySelector("#table");
-  if (table) {
-    table.innerHTML = `<ol>${result}</ol>`;
-  }
+  table.innerHTML = `<ol>${result}</ol>`;
 }
 
 function getTextValue(e: HTMLInputElement): string {
