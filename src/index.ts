@@ -2,6 +2,8 @@ import App, { Page } from "./app";
 import Client from "./client";
 import { TodoList } from "./todolist";
 
+const errorMsg: Element | null = document.querySelector(".error-message");
+
 document.addEventListener("DOMContentLoaded", function init() {
   let form: HTMLFormElement | null = document.querySelector("#mainForm");
   if (!form) {
@@ -39,11 +41,13 @@ document.addEventListener("DOMContentLoaded", function init() {
     },
 
     markInvalid: (): void => {
-      text.classList.add("is-invalid");
+      text.classList.add("is-invalid", "border-red-500");
+      errorMsg?.classList.remove("hidden");   // show error message
     },
 
     markValid: (): void => {
-      text.classList.remove("is-invalid");
+      text.classList.remove("is-invalid", "border-red-500");
+      errorMsg?.classList.add("hidden");      // hide error message
     },
 
     isValid: (): boolean => form.checkValidity(),
