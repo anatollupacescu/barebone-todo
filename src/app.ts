@@ -1,4 +1,5 @@
 import Client from "./client";
+import { TodoList } from "./todolist";
 
 export interface Page {
   textValue(): string;
@@ -8,24 +9,25 @@ export interface Page {
   markInvalid(): void;
   markValid(): void;
   isValid(): boolean;
-  renderTable(_: string[], done: Set<number>): void;
 }
 
 export default class App {
   private page: Page;
   private client: Client;
-  private done: Set<number> = new Set();
+  private list: TodoList;
 
-  constructor(p: Page, c: Client) {
+  constructor(p: Page, list: TodoList, c: Client) {
     this.page = p;
+    this.list = list;
     this.client = c;
+    list.onDone(i => this.onDone(i));
   }
 
   load() {
     this.client
       .fetchAll()
       .then((data) => {
-        this.page.renderTable(data, this.done);
+        this.list.setItems(data);
       })
       .catch(() => {
         console.error("could not fetch data");
@@ -33,7 +35,6 @@ export default class App {
   }
 
   onChange() {
-    // browser has already evaluated the constraints — just reflect its verdict
     if (this.page.isValid()) {
       this.page.markValid();
       this.page.setReady(true);
@@ -43,17 +44,15 @@ export default class App {
   }
 
   onInvalid() {
-    // browser blocked the submit and fired 'invalid' on the field
     this.page.markInvalid();
     this.page.setReady(false);
   }
 
-  onDone(index: number) {
-    this.done.add(index);
+  onDone(_index: number) {
     this.client
       .fetchAll()
       .then((data) => {
-        this.page.renderTable(data, this.done);
+        this.list.setItems(data);
       })
       .catch(() => {
         console.error("could not refresh after marking done");
@@ -75,7 +74,7 @@ export default class App {
       .then((data) => {
         this.page.resetText();
         this.page.markValid();
-        this.page.renderTable(data, this.done);
+        this.list.setItems(data);
         this.page.lockInput(false);
       })
       .catch(() => {
