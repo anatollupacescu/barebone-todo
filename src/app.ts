@@ -8,12 +8,13 @@ export interface Page {
   markInvalid(): void;
   markValid(): void;
   isValid(): boolean;
-  renderTable(_: string[]): void;
+  renderTable(_: string[], done: Set<number>): void;
 }
 
 export default class App {
   private page: Page;
   private client: Client;
+  private done: Set<number> = new Set();
 
   constructor(p: Page, c: Client) {
     this.page = p;
@@ -24,7 +25,7 @@ export default class App {
     this.client
       .fetchAll()
       .then((data) => {
-        this.page.renderTable(data);
+        this.page.renderTable(data, this.done);
       })
       .catch(() => {
         console.error("could not fetch data");
@@ -47,6 +48,18 @@ export default class App {
     this.page.setReady(false);
   }
 
+  onDone(index: number) {
+    this.done.add(index);
+    this.client
+      .fetchAll()
+      .then((data) => {
+        this.page.renderTable(data, this.done);
+      })
+      .catch(() => {
+        console.error("could not refresh after marking done");
+      });
+  }
+
   onSubmit() {
     this.page.setReady(false);
 
@@ -62,7 +75,7 @@ export default class App {
       .then((data) => {
         this.page.resetText();
         this.page.markValid();
-        this.page.renderTable(data);
+        this.page.renderTable(data, this.done);
         this.page.lockInput(false);
       })
       .catch(() => {

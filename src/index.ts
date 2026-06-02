@@ -1,90 +1,91 @@
+// index.ts
+import { signal, effect, batch } from '@preact/signals-core';
 import App, { Page } from "./app";
 import Client from "./client";
 
 document.addEventListener("DOMContentLoaded", function init() {
   let form: HTMLFormElement | null = document.querySelector("#mainForm");
-  if (!form) {
-    throw new Error("#mainForm not found");
-  }
+  if (!form) throw new Error("#mainForm not found");
 
   let text: HTMLInputElement | null = document.querySelector("#todoText");
-  if (!text) {
-    throw new Error("#todoText not found");
-  }
+  if (!text) throw new Error("#todoText not found");
 
   let button: HTMLButtonElement | null = document.querySelector("#addBtn");
-  if (!button) {
-    throw new Error("#addBtn not found");
-  }
+  if (!button) throw new Error("#addBtn not found");
 
   let table: Element | null = document.querySelector("#table");
-  if (!table) {
-    throw new Error("#table not found");
-  }
+  if (!table) throw new Error("#table not found");
 
-  let page: Page = {
-    textValue: (): string => text.value,
+  // ── signals ──────────────────────────────────────────────────────────────
+  const todos = signal<string[]>([]);
+  const done = signal<Set<number>>(new Set());
+  const ready = signal<boolean>(false);
+  const locked = signal<boolean>(false);
+  const invalid = signal<boolean>(false);
 
-    resetText: (): void => {
-      text.value = "";
-    },
+  // ── effects: one DOM concern each ────────────────────────────────────────
+  effect(() => { button.disabled = !ready.value; });
 
-    // only the button tracks validity state — input is never disabled by validation
-    setReady: (b: boolean): void => {
-      button.disabled = !b;
-    },
+  effect(() => { text.disabled = locked.value; });
 
-    // input is locked only during fetch in-flight to prevent edits mid-request
-    lockInput: (b: boolean): void => {
-      text.disabled = b;
-    },
+  effect(() => { text.classList.toggle("is-invalid", invalid.value); });
 
-    markInvalid: (): void => {
-      text.classList.add("is-invalid");
-    },
+  effect(() => {
+    const data = todos.value;
+    const doneSet = done.value;
+    const ol = document.createElement("ol");
 
-    markValid: (): void => {
-      text.classList.remove("is-invalid");
-    },
+    data.forEach((d, i) => {
+      const li = document.createElement("li");
+      li.className = "list-item d-flex align-items-center mb-1";
 
-    isValid: (): boolean => form.checkValidity(),
+      const span = document.createElement("span");
+      span.textContent = d; // textContent escapes HTML automatically — no XSS
+      if (doneSet.has(i)) {
+        span.style.textDecoration = "line-through";
+        span.style.color = "#999";
+      }
+      li.appendChild(span);
 
-    renderTable: (data: string[]): void => {
-      const ol = document.createElement("ol");
-
-      for (const d of data) {
-        const li = document.createElement("li");
-        li.className = "list-item";
-        li.textContent = d; // textContent escapes HTML automatically — no XSS
-        ol.appendChild(li);
+      if (!doneSet.has(i)) {
+        const btn = document.createElement("button");
+        btn.className = "btn btn-sm btn-outline-success ms-2";
+        btn.textContent = "Done";
+        btn.addEventListener("click", () => app.onDone(i));
+        li.appendChild(btn);
       }
 
-      table.replaceChildren(ol); // atomic swap, no flicker, clears old nodes cleanly
+      ol.appendChild(li);
+    });
+
+    table.replaceChildren(ol);
+  });
+
+  // ── page: same interface, methods now write to signals only ──────────────
+  const page: Page = {
+    textValue: () => text.value,
+    resetText: () => { text.value = ""; },
+    isValid: () => form.checkValidity(),
+
+    setReady: (b) => { ready.value = b; },
+    lockInput: (b) => { locked.value = b; },
+    markInvalid: () => { invalid.value = true; },
+    markValid: () => { invalid.value = false; },
+
+    renderTable: (data, doneItems) => {
+      batch(() => {
+        todos.value = data;
+        done.value = new Set(doneItems); // new ref so signal always fires
+      });
     },
   };
 
-  let client = new Client();
-  let app = new App(page, client);
+  const client = new Client();
+  const app = new App(page, client);
 
-  // 'input' fires on any value change: typing, paste, drag-drop, autocomplete
-  text.addEventListener("input", () => {
-    app.onChange();
-  });
-
-  // browser fires 'invalid' per-field when checkValidity() fails or submit is blocked
-  // preventDefault suppresses the browser's native callout bubble
-  text.addEventListener("invalid", (event: Event) => {
-    event.preventDefault();
-    app.onInvalid();
-  });
-
-  // submit only fires if the browser's own checkValidity() passed (because of novalidate
-  // we handle it manually via form.checkValidity() in page.isValid, but type="submit"
-  // on the button still triggers constraint checking before the event reaches here)
-  form.addEventListener("submit", (event: Event) => {
-    event.preventDefault();
-    app.onSubmit();
-  });
+  text.addEventListener("input", () => app.onChange());
+  text.addEventListener("invalid", (e: Event) => { e.preventDefault(); app.onInvalid(); });
+  form.addEventListener("submit", (e: Event) => { e.preventDefault(); app.onSubmit(); });
 
   app.load();
 });
