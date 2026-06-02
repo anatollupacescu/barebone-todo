@@ -22,22 +22,28 @@ export class TodoList {
 
   private render(): void {
     const ol = document.createElement("ol");
+    ol.className = "space-y-0";
 
     this.items.forEach((item, i) => {
       const li = document.createElement("li");
-      li.className = "list-item d-flex align-items-center mb-1";
+      li.className = "flex items-start justify-between px-4 py-3 hover:bg-gray-100 transition duration-150 border-b border-gray-200 last:border-b-0 cursor-pointer";
+
+      const textContainer = document.createElement("div");
+      textContainer.className = "flex-1";
 
       const span = document.createElement("span");
+      span.className = "text-gray-800 text-sm";
       span.textContent = item;
       if (this.done.has(i)) {
         span.style.textDecoration = "line-through";
-        span.style.color = "#999";
+        span.className = "text-gray-400 text-sm";
       }
-      li.appendChild(span);
+      textContainer.appendChild(span);
+      li.appendChild(textContainer);
 
       if (!this.done.has(i)) {
         const btn = document.createElement("button");
-        btn.className = "btn btn-sm btn-outline-success ms-2";
+        btn.className = "ml-4 px-3 py-1 text-xs font-medium text-green-700 border border-green-600 rounded hover:bg-green-50 transition duration-150";
         btn.textContent = "Done";
         btn.addEventListener("click", () => {
           this.done.add(i);
