@@ -21,6 +21,7 @@ export default class App {
     this.list = list;
     this.client = c;
     list.onDone(i => this.onDone(i));
+    list.onDelete(ids => this.onDelete(ids));
   }
 
   load() {
@@ -57,6 +58,18 @@ export default class App {
       })
       .catch(() => {
         console.error('could not mark item done');
+      });
+  }
+
+  onDelete(ids: number[]) {
+    this.client
+      .deleteItems(ids)
+      .then(() => this.client.fetchAll())
+      .then((data) => {
+        this.list.setItems(data);
+      })
+      .catch(() => {
+        console.error('could not delete items');
       });
   }
 
