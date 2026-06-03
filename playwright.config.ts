@@ -1,9 +1,9 @@
 import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
-  testDir: './',          // put tests next to this config, or adjust to e.g. './tests'
-  timeout: 15_000,        // per-test timeout
-  retries: 0,
+  testDir: './',
+  timeout: 15_000,
+  retries: process.env.CI ? 1 : 0,
 
   use: {
     baseURL: 'http://localhost:5173',
@@ -13,24 +13,23 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: {
+        ...devices['Desktop Chrome'],
+      },
     },
   ],
 
-  /**
-   * Start both the Vite dev server and json-server before running tests.
-   * Adjust the `command` fields to match how you actually start these processes
-   * (e.g. `npm run dev` for the frontend, `npx json-server ...` for the backend).
-   */
   webServer: [
     {
       command: 'npx json-server --watch data.json --port 3000',
-      port: 3000,
+      url: 'http://localhost:3000/todo', // adjust if your endpoint differs
+      timeout: 120_000,
       reuseExistingServer: !process.env.CI,
     },
     {
       command: 'npm run dev',
-      port: 5173,
+      url: 'http://localhost:5173',
+      timeout: 120_000,
       reuseExistingServer: !process.env.CI,
     },
   ],

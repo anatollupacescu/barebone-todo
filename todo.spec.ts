@@ -13,10 +13,6 @@ async function resetServer(seeds: { title: string; done: boolean }[] = []) {
   const res = await fetch(API_URL);
   const items = (await res.json()) as { id: number }[];
 
-  // ❌ Old: concurrent deletes — races with json-server's file writes
-  // await Promise.all(items.map(item => fetch(`${API_URL}/${item.id}`, { method: 'DELETE' })));
-
-  // ✅ New: sequential deletes — safe with json-server's file-based persistence
   for (const item of items) {
     await fetch(`${API_URL}/${item.id}`, { method: 'DELETE' });
   }
