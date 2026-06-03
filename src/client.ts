@@ -1,34 +1,39 @@
+export interface TodoItem {
+  id: number;
+  title: string;
+  date: string;
+  done: boolean;
+}
 
 export default class Client {
-  private data: string[]
+  private url = 'http://localhost:3000/todo';
 
-  private url = 'http://localhost:3000/todo'
-
-  constructor(init: string[] = []) {
-    this.data = init
+  async fetchAll(): Promise<TodoItem[]> {
+    const response = await fetch(this.url);
+    return response.json();
   }
 
-  async fetchAll(): Promise<string[]> {
-    const response = await fetch(this.url)
-    const json = await response.json()
-    this.data = json.map((t: { title: string }) => t.title)
-    return this.data
-  }
-
-  async add(title: string): Promise<string[]> {
-    const response = await fetch(this.url, {
+  async add(title: string): Promise<TodoItem[]> {
+    // Get current items to determine next id
+    const current = await this.fetchAll();
+    await fetch(this.url, {
       method: 'POST',
       body: JSON.stringify({
-        id: this.data.length,
-        title: title,
-        date: new Date()
+        id: current.length,
+        title,
+        date: new Date(),
+        done: false           // ← initialize as not done
       }),
-      headers: {
-        "Content-type": "application/json; charset=UTF-8"
-      }
-    })
-    const json = await response.json()
-    this.data = [...this.data, json.title]
-    return this.data
+      headers: { 'Content-type': 'application/json; charset=UTF-8' }
+    });
+    return this.fetchAll();
+  }
+
+  async markDone(id: number): Promise<void> {
+    await fetch(`${this.url}/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ done: true }),
+      headers: { 'Content-type': 'application/json; charset=UTF-8' }
+    });
   }
 }

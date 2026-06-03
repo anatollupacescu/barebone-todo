@@ -48,14 +48,15 @@ export default class App {
     this.page.setReady(false);
   }
 
-  onDone(_index: number) {
+  onDone(id: number) {
     this.client
-      .fetchAll()
+      .markDone(id)
+      .then(() => this.client.fetchAll())
       .then((data) => {
         this.list.setItems(data);
       })
       .catch(() => {
-        console.error("could not refresh after marking done");
+        console.error('could not mark item done');
       });
   }
 

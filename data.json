@@ -3,17 +3,20 @@
     {
       "id": 0,
       "title": "cherry",
-      "date": "2020-04-06T13:17:46.694Z"
+      "date": "2020-04-06T13:17:46.694Z",
+      "done": true
     },
     {
       "id": 1,
       "title": "strawberry",
-      "date": "2020-04-06T14:52:05.036Z"
+      "date": "2020-04-06T14:52:05.036Z",
+      "done": false
     },
     {
       "id": 2,
       "title": "dinkleberry",
-      "date": "2020-04-06T14:55:52.347Z"
+      "date": "2020-04-06T14:55:52.347Z",
+      "done": false
     }
   ]
 }
