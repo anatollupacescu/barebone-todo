@@ -1,9 +1,45 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 @layer base {
   body {
     @apply bg-gradient-to-br from-slate-50 to-slate-100 text-slate-900;
+  }
+}
+
+@layer components {
+  .todo-item {
+    @apply flex items-center justify-between px-4 py-3
+           hover:bg-gray-100 transition duration-150
+           border-b border-gray-200 last:border-b-0;
+  }
+
+  .todo-checkbox {
+    @apply mr-3 h-4 w-4 accent-blue-600 cursor-pointer flex-shrink-0;
+  }
+
+  .todo-title {
+    @apply text-gray-800 text-sm;
+  }
+
+  .todo-title--done {
+    @apply text-gray-400 text-sm line-through;
+  }
+
+  .todo-done-btn {
+    @apply ml-4 px-3 py-1 text-xs font-medium text-green-700
+           border border-green-600 rounded hover:bg-green-50
+           transition duration-150;
+  }
+
+  .delete-btn {
+    @apply mt-4 w-full py-2 px-4 rounded-lg text-sm font-medium transition duration-200;
+  }
+
+  .delete-btn--active {
+    @apply bg-red-600 hover:bg-red-700 text-white cursor-pointer;
+  }
+
+  .delete-btn--inactive {
+    @apply bg-gray-200 text-gray-400 cursor-not-allowed;
   }
 }
