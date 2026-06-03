@@ -1,39 +1,29 @@
-import App, { Page } from "./app";
+import App, { Form } from "./app";
 import Client from "./client";
 import { TodoList } from "./todolist";
 
-const errorMsg: Element | null = document.querySelector(".error-message");
-
 document.addEventListener("DOMContentLoaded", function init() {
-  let form: HTMLFormElement | null = document.querySelector("#mainForm");
-  if (!form) {
-    throw new Error("#mainForm not found");
-  }
+  const form = document.querySelector<HTMLFormElement>("#mainForm");
+  if (!form) throw new Error("#mainForm not found");
 
-  let text: HTMLInputElement | null = document.querySelector("#todoText");
-  if (!text) {
-    throw new Error("#todoText not found");
-  }
+  const text = document.querySelector<HTMLInputElement>("#todoText");
+  if (!text) throw new Error("#todoText not found");
 
-  let button: HTMLButtonElement | null = document.querySelector("#addBtn");
-  if (!button) {
-    throw new Error("#addBtn not found");
-  }
+  const addBtn = document.querySelector<HTMLButtonElement>("#addBtn");
+  if (!addBtn) throw new Error("#addBtn not found");
 
-  let tableEl: Element | null = document.querySelector("#table");
-  if (!tableEl) {
-    throw new Error("#table not found");
-  }
+  const errorMsg = document.querySelector<HTMLElement>(".error-message");
+  if (!errorMsg) throw new Error(".error-message not found");
 
-  let page: Page = {
-    textValue: (): string => text.value,
+  const tableEl = document.querySelector<HTMLElement>("#table");
+  if (!tableEl) throw new Error("#table not found");
 
-    resetText: (): void => {
-      text.value = "";
-    },
+  const deleteBtn = document.querySelector<HTMLButtonElement>("#deleteBtn");
+  if (!deleteBtn) throw new Error("#deleteBtn not found");
 
+  const appForm: Form = {
     setReady: (b: boolean): void => {
-      button.disabled = !b;
+      addBtn.disabled = !b;
     },
 
     lockInput: (b: boolean): void => {
@@ -42,23 +32,25 @@ document.addEventListener("DOMContentLoaded", function init() {
 
     markInvalid: (): void => {
       text.classList.add("is-invalid", "border-red-500");
-      errorMsg?.classList.remove("hidden");   // show error message
+      errorMsg.classList.remove("hidden");
     },
 
     markValid: (): void => {
       text.classList.remove("is-invalid", "border-red-500");
-      errorMsg?.classList.add("hidden");      // hide error message
+      errorMsg.classList.add("hidden");
     },
 
-    isValid: (): boolean => form.checkValidity(),
+    resetInput: (): void => {
+      text.value = "";
+    },
   };
 
-  let todoList = new TodoList(tableEl);
-  let client = new Client();
-  let app = new App(page, todoList, client);
+  const todoList = new TodoList(tableEl, deleteBtn);
+  const client = new Client();
+  const app = new App(appForm, todoList, client);
 
   text.addEventListener("input", () => {
-    app.onChange();
+    app.onChange(text.value);
   });
 
   text.addEventListener("invalid", (event: Event) => {
@@ -68,7 +60,11 @@ document.addEventListener("DOMContentLoaded", function init() {
 
   form.addEventListener("submit", (event: Event) => {
     event.preventDefault();
-    app.onSubmit();
+    if (!form.checkValidity()) {
+      app.onInvalid();
+      return;
+    }
+    app.onSubmit(text.value);
   });
 
   app.load();

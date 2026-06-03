@@ -14,11 +14,9 @@ export default class Client {
   }
 
   async add(title: string): Promise<TodoItem[]> {
-    const current = await this.fetchAll();
     await fetch(this.url, {
       method: 'POST',
       body: JSON.stringify({
-        id: current.length,
         title,
         date: new Date(),
         done: false
@@ -37,8 +35,8 @@ export default class Client {
   }
 
   async deleteItems(ids: number[]): Promise<void> {
-    await Promise.all(
-      ids.map(id => fetch(`${this.url}/${id}`, { method: 'DELETE' }))
-    );
+    for (const id of ids) {
+      await fetch(`${this.url}/${id}`, { method: 'DELETE' });
+    }
   }
 }

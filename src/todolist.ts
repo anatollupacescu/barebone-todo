@@ -4,14 +4,21 @@ type DoneCallback = (id: number) => void;
 type DeleteCallback = (ids: number[]) => void;
 
 export class TodoList {
-  private el: Element;
+  private el: HTMLElement;
+  private deleteBtn: HTMLButtonElement;
   private items: TodoItem[] = [];
   private selected: Set<number> = new Set();
   private onDoneCallback?: DoneCallback;
   private onDeleteCallback?: DeleteCallback;
 
-  constructor(el: Element) {
+  constructor(el: HTMLElement, deleteBtn: HTMLButtonElement) {
     this.el = el;
+    this.deleteBtn = deleteBtn;
+    this.deleteBtn.addEventListener('click', () => {
+      if (this.selected.size > 0) {
+        this.onDeleteCallback?.([...this.selected]);
+      }
+    });
   }
 
   onDone(cb: DoneCallback): void {
@@ -25,12 +32,11 @@ export class TodoList {
   setItems(items: TodoItem[]): void {
     this.items = items;
     this.selected.clear();
-    this.render();
+    this.renderList();
+    this.renderDeleteBtn();
   }
 
-  private render(): void {
-    const container = document.createElement('div');
-
+  private renderList(): void {
     const ol = document.createElement('ol');
     ol.className = 'space-y-0';
 
@@ -49,7 +55,7 @@ export class TodoList {
         } else {
           this.selected.delete(item.id);
         }
-        this.render();
+        this.renderDeleteBtn();
       });
       li.appendChild(checkbox);
 
@@ -58,17 +64,14 @@ export class TodoList {
       textContainer.className = 'flex-1';
 
       const span = document.createElement('span');
-      if (item.done) {
-        span.className = 'text-gray-400 text-sm';
-        span.style.textDecoration = 'line-through';
-      } else {
-        span.className = 'text-gray-800 text-sm';
-      }
+      span.className = item.done
+        ? 'text-gray-400 text-sm line-through'
+        : 'text-gray-800 text-sm';
       span.textContent = item.title;
       textContainer.appendChild(span);
       li.appendChild(textContainer);
 
-      // Done button (undone items only)
+      // Done button
       if (!item.done) {
         const btn = document.createElement('button');
         btn.className = 'ml-4 px-3 py-1 text-xs font-medium text-green-700 border border-green-600 rounded hover:bg-green-50 transition duration-150';
@@ -82,26 +85,18 @@ export class TodoList {
       ol.appendChild(li);
     });
 
-    container.appendChild(ol);
+    this.el.replaceChildren(ol);
+  }
 
-    // Delete button
+  private renderDeleteBtn(): void {
     const n = this.selected.size;
-    const deleteBtn = document.createElement('button');
-    deleteBtn.disabled = n === 0;
-    deleteBtn.textContent = n > 0 ? `Delete (${n})` : 'Delete';
-    deleteBtn.className = [
+    this.deleteBtn.disabled = n === 0;
+    this.deleteBtn.textContent = n > 0 ? `Delete (${n})` : 'Delete';
+    this.deleteBtn.className = [
       'mt-4 w-full py-2 px-4 rounded-lg text-sm font-medium transition duration-200',
       n > 0
         ? 'bg-red-600 hover:bg-red-700 text-white cursor-pointer'
         : 'bg-gray-200 text-gray-400 cursor-not-allowed'
     ].join(' ');
-    deleteBtn.addEventListener('click', () => {
-      if (this.selected.size > 0) {
-        this.onDeleteCallback?.([...this.selected]);
-      }
-    });
-    container.appendChild(deleteBtn);
-
-    this.el.replaceChildren(container);
   }
 }
