@@ -1,31 +1,33 @@
 import { signal, computed, effect } from '@preact/signals-core';
 import { TodoItem } from './client';
 
-type DoneCallback   = (id: number)    => void;
+type DoneCallback = (id: number) => void;
 type DeleteCallback = (ids: number[]) => void;
 
 export class TodoList {
-  private el:        HTMLElement;
-  private deleteBtn: HTMLButtonElement;
+  private listEl: HTMLElement;
+  private deleteBtnEl: HTMLButtonElement;
 
-  private items    = signal<TodoItem[]>([]);
+  private items = signal<TodoItem[]>([]);
   private selected = signal<Set<number>>(new Set());
 
   private selectedCount = computed(() => this.selected.value.size);
-  private deleteLabel   = computed(() =>
+  private deleteLabel = computed(() =>
     this.selectedCount.value > 0
       ? `Delete (${this.selectedCount.value})`
       : 'Delete'
   );
 
-  private onDoneCallback?:   DoneCallback;
+  private onDoneCallback?: DoneCallback;
   private onDeleteCallback?: DeleteCallback;
+  onDone(cb: DoneCallback): void { this.onDoneCallback = cb; }
+  onDelete(cb: DeleteCallback): void { this.onDeleteCallback = cb; }
 
   constructor(el: HTMLElement, deleteBtn: HTMLButtonElement) {
-    this.el        = el;
-    this.deleteBtn = deleteBtn;
+    this.listEl = el;
+    this.deleteBtnEl = deleteBtn;
 
-    this.deleteBtn.addEventListener('click', () => {
+    this.deleteBtnEl.addEventListener('click', () => {
       if (this.selected.value.size > 0) {
         this.onDeleteCallback?.([...this.selected.value]);
       }
@@ -33,9 +35,9 @@ export class TodoList {
 
     effect(() => {
       const n = this.selectedCount.value;
-      this.deleteBtn.textContent = this.deleteLabel.value;
-      this.deleteBtn.disabled    = n === 0;
-      this.deleteBtn.className   = [
+      this.deleteBtnEl.textContent = this.deleteLabel.value;
+      this.deleteBtnEl.disabled = n === 0;
+      this.deleteBtnEl.className = [
         'delete-btn',
         n > 0 ? 'delete-btn--active' : 'delete-btn--inactive',
       ].join(' ');
@@ -46,11 +48,8 @@ export class TodoList {
     });
   }
 
-  onDone(cb: DoneCallback):     void { this.onDoneCallback   = cb; }
-  onDelete(cb: DeleteCallback): void { this.onDeleteCallback = cb; }
-
   setItems(items: TodoItem[]): void {
-    this.items.value    = items;
+    this.items.value = items;
     this.selected.value = new Set();
   }
 
@@ -62,9 +61,9 @@ export class TodoList {
       const li = document.createElement('li');
       li.className = 'todo-item';
 
-      const checkbox     = document.createElement('input');
-      checkbox.type      = 'checkbox';
-      checkbox.checked   = selected.has(item.id);
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.checked = selected.has(item.id);
       checkbox.className = 'todo-checkbox';
       checkbox.addEventListener('change', () => {
         const next = new Set(this.selected.value);
@@ -73,18 +72,18 @@ export class TodoList {
       });
       li.appendChild(checkbox);
 
-      const textContainer     = document.createElement('div');
+      const textContainer = document.createElement('div');
       textContainer.className = 'flex-1';
 
-      const span       = document.createElement('span');
-      span.className   = item.done ? 'todo-title--done' : 'todo-title';
+      const span = document.createElement('span');
+      span.className = item.done ? 'todo-title--done' : 'todo-title';
       span.textContent = item.title;
       textContainer.appendChild(span);
       li.appendChild(textContainer);
 
       if (!item.done) {
-        const btn       = document.createElement('button');
-        btn.className   = 'todo-done-btn';
+        const btn = document.createElement('button');
+        btn.className = 'todo-done-btn';
         btn.textContent = 'Done';
         btn.addEventListener('click', () => this.onDoneCallback?.(item.id));
         li.appendChild(btn);
@@ -93,6 +92,6 @@ export class TodoList {
       ol.appendChild(li);
     });
 
-    this.el.replaceChildren(ol);
+    this.listEl.replaceChildren(ol);
   }
 }
