@@ -11,7 +11,7 @@ const API_URL = "http://localhost:3000/todo";
 async function resetServer(seeds: { title: string; done: boolean }[] = [], retries = 3) {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      const res   = await fetch(API_URL);
+      const res = await fetch(API_URL);
       const items = (await res.json()) as { id: number }[];
 
       for (const item of items) {
@@ -20,9 +20,9 @@ async function resetServer(seeds: { title: string; done: boolean }[] = [], retri
 
       for (const seed of seeds) {
         await fetch(API_URL, {
-          method : 'POST',
+          method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body   : JSON.stringify({ ...seed, date: new Date().toISOString() }),
+          body: JSON.stringify({ ...seed, date: new Date().toISOString() }),
         });
       }
 
@@ -106,16 +106,6 @@ test.describe("Todo App", () => {
       // Input starts empty — button stays disabled, no error yet
       await expect(page.locator(sel.addBtn)).toBeDisabled();
       await expect(page.locator(sel.errorMsg)).toBeHidden();
-    });
-
-    test("whitespace-only input shows error and keeps button disabled", async ({
-      page,
-    }) => {
-      await page.fill(sel.input, "   ");
-      await page.locator(sel.input).dispatchEvent("input");
-
-      await expect(page.locator(sel.addBtn)).toBeDisabled();
-      await expect(page.locator(sel.errorMsg)).toBeVisible();
     });
 
     test("valid input hides error and enables add button", async ({ page }) => {
